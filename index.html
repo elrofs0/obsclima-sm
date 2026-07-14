@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ObsClima SM por elrofs | Monitorização El Niño</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: #1e293b;
+            --bg-card: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #10b981;
+            --alert-red: #ef4444;
+            --alert-orange: #f97316;
+            --alert-yellow: #eab308;
+            --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* --- NAVEGAÇÃO SUPERIOR --- */
+        header {
+            background-color: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent-blue);
+        }
+
+        .logo-author {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            list-style: none;
+        }
+
+        .nav-links button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-family: inherit;
+        }
+
+        .nav-links button:hover, .nav-links button.active {
+            color: var(--accent-blue);
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            padding: 120px 20px 50px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-panel) 100%);
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+
+        /* --- CONTAINER PRINCIPAL --- */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* --- TABS SECUNDÁRIAS (BAIRROS) --- */
+        .bairros-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background-color: var(--bg-panel);
+            color: var(--text-muted);
+            border: 1px solid var(--bg-card);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-blue);
+            color: #000;
+            border-color: var(--accent-blue);
+        }
+
+        /* --- GESTÃO DE CONTEÚDO (PÁGINAS) --- */
+        .page-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        .bairro-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .bairro-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- CARDS & GRID --- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--bg-card);
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .card h3 {
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .alert-box {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--alert-red);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+        }
+        
+        .alert-box h4 {
+            color: var(--alert-red);
+            margin-bottom: 5px;
+        }
+
+        /* --- TABELAS --- */
+        .table-responsive {
+            overflow-x: auto;
+            background-color: var(--bg-panel);
+            border-radius: 10px;
+            border: 1px solid var(--bg-card);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-card);
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: rgba(51, 65, 85, 0.5);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(51, 65, 85, 0.3); }
+
+        /* --- BADGES --- */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .badge.red { background-color: rgba(239, 68, 68, 0.2); color: var(--alert-red); border: 1px solid var(--alert-red); }
+        .badge.orange { background-color: rgba(249, 115, 22, 0.2); color: var(--alert-orange); border: 1px solid var(--alert-orange); }
+        .badge.yellow { background-color: rgba(234, 179, 8, 0.2); color: var(--alert-yellow); border: 1px solid var(--alert-yellow); }
+        .badge.green { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+        /* --- RESPONSIVIDADE --- */
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2rem; }
+            .nav-links { gap: 15px; }
+            .nav-links button { font-size: 0.85rem; }
+            .logo-author { display: none; } /* Oculta em telemóveis para poupar espaço */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="#" class="logo">
+                ☁️ <span>ObsClima</span>SM <span class="logo-author">por elrofs</span>
+            </a>
+            <ul class="nav-links">
+                <li><button class="main-nav-btn active" onclick="switchPage('page-dashboard')">Previsões por Bairro</button></li>
+                <li><button class="main-nav-btn" onclick="switchPage('page-mapa-risco')">Mapa de Risco</button></li>
+                <li><button class="main-nav-btn" onclick="switchPage('page-metodologia')">Metodologia</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="page-dashboard" class="page-content active">
+        <section class="hero">
+            <h1>Monitorização Climatológica Regional - 2026</h1>
+            <p>Projeções hiperlocais e alertas de tormentas severas sob a influência do Super El Niño para a malha urbana de Santa Maria - RS.</p>
+        </section>
+
+        <div class="container">
+            <div class="bairros-nav">
+                <button class="tab-btn active" onclick="switchBairro('fatima')">📍 Bairro Fátima (Foco)</button>
+                <button class="tab-btn" onclick="switchBairro('centro')">🏢 Centro & Medianeira</button>
+                <button class="tab-btn" onclick="switchBairro('camobi')">🎓 Camobi & Leste</button>
+                <button class="tab-btn" onclick="switchBairro('nsmarta')">🏘️ N. S. Marta & Oeste</button>
+                <button class="tab-btn" onclick="switchBairro('campeiro')">🌾 Campeiro & Sul</button>
+            </div>
+
+            <div id="fatima" class="bairro-content active">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>⚠️ Alertas Estruturais (Fátima)</h3>
+                        <p><strong>Risco de Umidade Extrema:</strong> Estruturas de fundos/anexos sofrerão com proliferação agressiva de fungos devido à ausência de insolação direta associada à alta humidade.</p>
+                        <p><strong>Escoamento:</strong> Vias marginais à Av. Pres. Vargas sofrerão colapso temporário do sistema pluvial em chuvas > 40mm/h.</p>
+                        <p><strong>Plano B de Segurança:</strong> Edifícios verticais (apartamentos) na região constituem zonas seguras contra ventanias severas (>80km/h) e inundações.</p>
+                    </div>
+                    <div class="card">
+                        <h3>🌪️ Datas Críticas de Tormentas (Picos)</h3>
+                        <div class="alert-box">
+                            <h4>14 a 15 de Setembro</h4>
+                            <p><strong>Ameaça:</strong> Queda de Granizo Médio e Microexplosões.</p>
+                            <p><strong>Impacto no Bairro:</strong> Alto risco para telhados de fibrocimento antigos e estruturas de garagem. Recomenda-se resguardar veículos.</p>
+                        </div>
+                        <div class="alert-box" style="border-left-color: var(--alert-orange); background-color: rgba(249, 115, 22, 0.1);">
+                            <h4>22 a 24 de Outubro</h4>
+                            <p><strong>Ameaça:</strong> Complexo Convectivo (Chuvas Torrenciais Incessantes).</p>
+                            <p><strong>Impacto:</strong> Saturação total do solo. O mofo em estruturas térreas atingirá o pico crítico se não houver ventilação forçada.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 15px;">Cronograma Detalhado</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Período (2026)</th>
+                                <th>Condição Esperada</th>
+                                <th>Temp. (Mín/Máx)</th>
+                                <th>Precipitação</th>
+                                <th>Ação Recomendada (Residência)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="background: rgba(15, 118, 110, 0.2); color: #2dd4bf; font-weight: bold; text-align: center;">AGOSTO - SATURAÇÃO INICIAL</td>
+                            </tr>
+                            <tr>
+                                <td>01 a 07 Ago</td>
+                                <td>☁️ Bloqueio Atmosférico (Garoa)</td>
+                                <td>12°C / 18°C</td>
+                                <td>60 mm</td>
+                                <td><span class="badge yellow">Instalar Antimofo Químico</span></td>
+                            </tr>
+                            <tr>
+                                <td>08 a 15 Ago</td>
+                                <td>🌩️ Frentes Frias Estacionárias</td>
+                                <td>15°C / 22°C</td>
+                                <td>110 mm</td>
+                                <td>Verificar calhas e ralos</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" style="background: rgba(185, 28, 28, 0.2); color: #f87171; font-weight: bold; text-align: center;">SETEMBRO - INSTABILIDADE SEVERA</td>
+                            </tr>
+                            <tr>
+                                <td>10 a 16 Set</td>
+                                <td>⛈️ Encontro de Massas (Choque)</td>
+                                <td>14°C / 26°C</td>
+                                <td>150 mm</td>
+                                <td><span class="badge red">Evacuar Pátios / Granizo Provável</span></td>
+                            </tr>
+                            <tr>
+                                <td>17 a 30 Set</td>
+                                <td>🌤️ Mórmaço e Pancadas Rápidas</td>
+                                <td>18°C / 30°C</td>
+                                <td>90 mm</td>
+                                <td><span class="badge orange">Desumidificador Elétrico Ligado</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" style="background: rgba(234, 88, 12, 0.2); color: #fb923c; font-weight: bold; text-align: center;">OUTUBRO - PICO PLUVIOMÉTRICO</td>
+                            </tr>
+                            <tr>
+                                <td>01 a 20 Out</td>
+                                <td>🌧️ Chuva Diária Contínua</td>
+                                <td>19°C / 27°C</td>
+                                <td>300 mm+</td>
+                                <td><span class="badge orange">Transição para Apartamento (Plano B)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="centro" class="bairro-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>🏢 Alertas Urbanos (Centro)</h3>
+                        <p><strong>Ilhas de Calor:</strong> O asfalto e betão impedirão o arrefecimento noturno. Sensação de "estufa" muito forte nos apartamentos sem ar condicionado.</p>
+                        <p><strong>Alagamentos Clássicos:</strong> Baixadas da Rua Riachuelo, Acampamento e arredores da Basílica terão bueiros em repuxo devido ao excesso de lixo urbano não recolhido e volume de chuva.</p>
+                    </div>
+                    <div class="card">
+                        <h3>🌪️ Datas Críticas (Centro)</h3>
+                        <div class="alert-box" style="border-left-color: var(--alert-yellow); background-color: rgba(234, 179, 8, 0.1);">
+                            <h4 style="color: var(--alert-yellow);">10 a 12 de Outubro</h4>
+                            <p><strong>Ameaça:</strong> Chuva intensa num curto espaço de tempo (Flash Floods).</p>
+                            <p><strong>Impacto:</strong> Caos no trânsito central. Subsolos de garagens comerciais com elevado risco de invasão de águas pluviais.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="camobi" class="bairro-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>🎓 Alertas Estruturais (Camobi)</h3>
+                        <p><strong>Corredor de Vento Leste:</strong> A topografia plana e proximidade à Base Aérea aceleram as rajadas pré-frontais. Previsão de ventos > 90km/h.</p>
+                        <p><strong>Isolamento Temporário:</strong> Queda de árvores de grande porte na RST-287 (Faixa Velha) poderá gerar engarrafamentos quilométricos e cortes de energia prolongados.</p>
+                    </div>
+                    <div class="card">
+                        <h3>🌪️ Datas Críticas (Camobi)</h3>
+                        <div class="alert-box">
+                            <h4>28 a 29 de Setembro</h4>
+                            <p><strong>Ameaça:</strong> Linha de Instabilidade (Squall Line).</p>
+                            <p><strong>Impacto:</strong> Risco máximo de destelhamento e rompimento de cabos de alta tensão na região universitária.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="nsmarta" class="bairro-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>🏘️ Alertas Geológicos (Região Oeste)</h3>
+                        <p><strong>Erosão Viária:</strong> Chuvas contínuas de Agosto criarão valas profundas nas ruas não pavimentadas, dificultando acesso de transportes públicos.</p>
+                        <p><strong>Movimento de Massas:</strong> Áreas de encosta próximas a sangas atingirão limite de absorção hídrica em Outubro.</p>
+                    </div>
+                    <div class="card">
+                        <h3>🌪️ Datas Críticas (N. S. Marta)</h3>
+                        <div class="alert-box" style="border-left-color: var(--alert-orange); background-color: rgba(249, 115, 22, 0.1);">
+                            <h4>18 a 22 de Outubro</h4>
+                            <p><strong>Ameaça:</strong> Saturação de Solo e Deslizamentos.</p>
+                            <p><strong>Impacto:</strong> Necessidade de monitorização contínua por parte da Defesa Civil. Risco de interdição de habitações precárias nas margens dos taludes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <div id="campeiro" class="bairro-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>🌾 Alertas Agrícolas e Rurais (Região Sul)</h3>
+                        <p><strong>Encharcamento do Solo:</strong> Prejuízos severos para o cultivo hortifrutigranjeiro de subsistência. Apodrecimento de raízes devido aos dias sem sol.</p>
+                        <p><strong>Transbordamento de Rios:</strong> Afluentes do Rio Vacacaí-Mirim sairão do leito, cortando estradas vicinais e pontilhões.</p>
+                    </div>
+                    <div class="card">
+                        <h3>🌪️ Datas Críticas (Sul)</h3>
+                        <div class="alert-box">
+                            <h4>05 a 08 de Outubro</h4>
+                            <p><strong>Ameaça:</strong> Cheias rápidas e persistentes.</p>
+                            <p><strong>Impacto:</strong> Ilhamento de propriedades rurais mais baixas e perda de pastagens. Recomenda-se realocar animais para zonas altas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div> <div id="page-mapa-risco" class="page-content">
+        <section class="hero" style="padding: 100px 20px 40px;">
+            <h1>Mapa Analítico de Vulnerabilidades</h1>
+            <p>Classificação de ameaças infraestruturais e geológicas por tipologia na cidade de Santa Maria.</p>
+        </section>
+        
+        <div class="container">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>🌊 Risco Hidrológico (Inundações/Alagamentos)</h3>
+                    <p>Santa Maria possui uma topografia irregular. As águas descem dos morros ao norte e acumulam-se nas bacias do centro/sul.</p>
+                    <ul style="margin-top: 15px; margin-left: 20px; color: var(--text-muted);">
+                        <li><span class="badge red">Extremo:</span> Baixadas da Medianeira, Vila Urlândia, Passo das Tropas.</li>
+                        <li><span class="badge orange">Elevado:</span> Ruas transversais do Bairro Fátima, Centro (Riachuelo/Pinheiro Machado).</li>
+                        <li><span class="badge green">Baixo:</span> Zonas altas de Camobi e encostas (risco é geológico, não hidrológico).</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🌬️ Risco Eólico (Vendavais e Microexplosões)</h3>
+                    <p>O aquecimento anômalo do ar gerado pelo El Niño cria fortes correntes descendentes durante as tempestades.</p>
+                    <ul style="margin-top: 15px; margin-left: 20px; color: var(--text-muted);">
+                        <li><span class="badge red">Extremo:</span> Camobi (Corredor leste), Diácono João Luiz Pozzobon.</li>
+                        <li><span class="badge orange">Elevado:</span> Bairro Fátima (risco de destelhamento de estruturas anexas), N. S. das Dores.</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🦠 Risco Sanitário Residencial (Humidade/Fungos)</h3>
+                    <p>Um efeito secundário ignorado dos períodos prolongados de chuva no Rio Grande do Sul é o impacto na saúde respiratória em habitações inadequadas.</p>
+                    <ul style="margin-top: 15px; margin-left: 20px; color: var(--text-muted);">
+                        <li><span class="badge red">Extremo:</span> Quartos de fundos sem insolação, habitações de madeira construídas diretamente sobre o solo, garagens adaptadas (Bairro Fátima, N. S. Marta).</li>
+                        <li><strong>Recomendação:</strong> Relocação para apartamentos de alvenaria em andares superiores durante Outubro.</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>⚡ Risco Elétrico (Blackouts)</h3>
+                    <p>Infraestrutura de distribuição aérea altamente vulnerável à queda de galhos (vegetação nativa e arborização viária não podada).</p>
+                    <ul style="margin-top: 15px; margin-left: 20px; color: var(--text-muted);">
+                        <li>Picos de interrupção previstos para: <strong>Segunda quinzena de Setembro</strong>.</li>
+                        <li>Impacto transversal a quase todos os bairros periféricos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-metodologia" class="page-content">
+        <section class="hero" style="padding: 100px 20px 40px;">
+            <h1>Metodologia do Observatório</h1>
+            <p>Como os dados são processados, calibrados e transformados em inteligência local.</p>
+        </section>
+
+        <div class="container">
+            <div class="card" style="margin-bottom: 30px;">
+                <h3>📊 Fontes de Dados e Modelação</h3>
+                <p>O <strong>ObsClima SM por elrofs</strong> não gera previsões do zero, mas atua como um agregador e interpretador de modelos globais aplicados à microescala de Santa Maria. Utilizamos um ensemble (conjunto) de modelos:</p>
+                <div style="margin-top: 20px;">
+                    <p><strong>1. Modelo ECMWF (Europeu):</strong> Referência global para precipitação. Utilizado para prever os volumes acumulados e a dinâmica do bloqueio atmosférico.</p>
+                    <p><strong>2. Modelo GFS (Americano):</strong> Utilizado para avaliar os índices de instabilidade (CAPE) e prever o risco de granizo e tornados.</p>
+                    <p><strong>3. Dados NOAA / INMET:</strong> Leitura das anomalias da Temperatura da Superfície do Mar (TSM) na região Niño 3.4 para calibrar a intensidade do Super El Niño.</p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>🎯 Abordagem "Hiperlocal"</h3>
+                    <p>Enquanto as previsões padrão dizem "Chuva em Santa Maria", o nosso método cruza o volume previsto com o mapa topográfico e de infraestrutura da cidade.</p>
+                    <p>Sabemos, por exemplo, que 50mm em Camobi geram impactos totalmente diferentes de 50mm na Rua Riachuelo (Centro) ou em quintais fechados no Bairro Fátima.</p>
+                </div>
+                <div class="card">
+                    <h3>👤 Adaptação ao Perfil do Utilizador</h3>
+                    <p>Este relatório inclui a parametrização de **Vulnerabilidade Indoor**. Focamo-nos não apenas na chuva que cai na rua, mas em como ela afeta estruturas específicas (como quartos de fundos e anexos), emitindo "Gatilhos de Segurança" para proteger a saúde respiratória e o património tecnológico.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para alternar as Páginas Principais (Dashboard, Mapa, Metodologia)
+        function switchPage(pageId) {
+            // Remove classe active dos botões de navegação superior
+            const navBtns = document.querySelectorAll('.main-nav-btn');
+            navBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Esconde todas as páginas e mostra a selecionada
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // Função para alternar as Abas dos Bairros dentro do Dashboard
+        function switchBairro(bairroId) {
+            // Remove classe active das tabs de bairros
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Esconde o conteúdo de todos os bairros e mostra o selecionado
+            const contents = document.querySelectorAll('.bairro-content');
+            contents.forEach(content => content.classList.remove('active'));
+            document.getElementById(bairroId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
